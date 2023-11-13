@@ -9,21 +9,21 @@ using UnityScene = UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
-    // ½Ì±ÛÅæÀ¸·Î ±¸Çö
-    private static UIManager instance;  // ½Ì±ÛÅæ. private
+    // ì‹±ê¸€í†¤ìœ¼ë¡œ êµ¬í˜„
+    private static UIManager instance;  // ì‹±ê¸€í†¤. private
     private SettingUI settingUI;
     private Shop shop;
 
-    public static UIManager Instance    // ÀÌ ÇÁ·ÎÆÛÆ¼¸¦ ÅëÇØ ÀÎ½ºÅÏ½º¸¦ ¸®ÅÏ¹ŞÀ½
+    public static UIManager Instance    // ì´ í”„ë¡œí¼í‹°ë¥¼ í†µí•´ ì¸ìŠ¤í„´ìŠ¤ë¥¼ ë¦¬í„´ë°›ìŒ
     {
         get
         {
-            if (instance == null) instance = FindObjectOfType<UIManager>(); // ÀÎ½ºÅÏ½º°¡ ÀÌ¹Ì Á¸ÀçÇÒ ¶© ¹ŞÁö ¾ÊÀ½
+            if (instance == null) instance = FindObjectOfType<UIManager>(); // ì¸ìŠ¤í„´ìŠ¤ê°€ ì´ë¯¸ ì¡´ì¬í•  ë• ë°›ì§€ ì•ŠìŒ
             return instance;
         }
     }
 
-    // UHD CanvasÀÇ ±¸¼º UI¿ä¼Òµé
+    // UHD Canvasì˜ êµ¬ì„± UIìš”ì†Œë“¤
     [SerializeField] private GameObject gameoverUI;
     [SerializeField] private GameObject crosshair;
     [SerializeField] private Text healthText;
@@ -33,38 +33,38 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI waveText;
 
 
-    public void UpdateAmmoText(int magAmmo, int remainAmmo)     // 'ammoText' ³²Àº ÅºÃ¢ UI °»½Å
+    public void UpdateAmmoText(int magAmmo, int remainAmmo)     // 'ammoText' ë‚¨ì€ íƒ„ì°½ UI ê°±ì‹ 
     {
         ammoText.text = magAmmo + "/" + remainAmmo;
     }
 
-    public void UpdateScoreText(int newScore)   // 'scoreText' Á¡¼ö UI °»½Å
+    public void UpdateScoreText(int newScore)   // 'scoreText' ì ìˆ˜ UI ê°±ì‹ 
     {
         scoreText.text = "Score :" + newScore;
     }
 
-    public void UpdateWaveText(int waves, int count)    // 'waveText' ³²Àº ÀûÀÇ ¼ö UI °»½Å
+    public void UpdateWaveText(int waves, int count)    // 'waveText' ë‚¨ì€ ì ì˜ ìˆ˜ UI ê°±ì‹ 
     {
         waveText.text = "Wave : " + waves + "/Enemy Left : " + count;
     }
 
-    public void UpdateLifeText(int count)   // 'lifeText' ³²Àº »ı¸í ¼ö UI °»½Å
+    public void UpdateLifeText(int count)   // 'lifeText' ë‚¨ì€ ìƒëª… ìˆ˜ UI ê°±ì‹ 
     {
         lifeText.text = "Life : " + count;
     }
 
-    public void UpdateHealthText(float health)  // 'healthText' ³²Àº HP UI °»½Å
+    public void UpdateHealthText(float health)  // 'healthText' ë‚¨ì€ HP UI ê°±ì‹ 
     {
-        healthText.text = Mathf.Floor(health).ToString();    // Ã¼·ÂÀÇ ¼Ò¼ıÁ¡À» ³»¸²ÇÑ ÈÄ ¹®ÀÚ¿­·Î ¹Ù²Ş
+        healthText.text = Mathf.Floor(health).ToString();    // ì²´ë ¥ì˜ ì†Œìˆ«ì ì„ ë‚´ë¦¼í•œ í›„ ë¬¸ìì—´ë¡œ ë°”ê¿ˆ
     }
 
-    public void SetActiveGameOverUI(bool active)    // °ÔÀÓ ¿À¹ö½Ã 'GameOverUI' È°¼ºÈ­
+    public void SetActiveGameOverUI(bool active)    // ê²Œì„ ì˜¤ë²„ì‹œ 'GameOverUI' í™œì„±í™”
     {
         gameoverUI.SetActive(active);
     }
 
     /*
-    public void UpdateCrossHairPosition(Vector3 worldPosition) // ÇØ´ç À§Ä¡¿¡ Å©·Î½º Çì¾î Ui Ç¥½Ã
+    public void UpdateCrossHairPosition(Vector3 worldPosition) // í•´ë‹¹ ìœ„ì¹˜ì— í¬ë¡œìŠ¤ í—¤ì–´ Ui í‘œì‹œ
     {
         crosshair.UpdatePosition(worldPosition);
     }
@@ -92,15 +92,15 @@ public class UIManager : MonoBehaviour
     }
 
 
-    public void SetActiveCrossHair(bool active)     // Å©·Î½º Çì¾î UI È°¼ºÈ­
+    public void SetActiveCrossHair(bool active)     // í¬ë¡œìŠ¤ í—¤ì–´ UI í™œì„±í™”
     {
         crosshair.SetActive(active);
     }
 
-    // Restart¹öÆ°ÀÇ OnClick ÀÌº¥Æ® ÇÔ¼ö ¸ñ·Ï¿¡ ³Ö¾îµÒ
-    public void GameRestart()   // °ÔÀÓ Over »óÅÂ¿¡¼­ Restart ¹öÆ°À» ´­·¶À» ¶§ ½ÇÇà½ÃÅ³ ÇÔ¼ö. °ÔÀÓ Àç½ÃÀÛ
+    // Restartë²„íŠ¼ì˜ OnClick ì´ë²¤íŠ¸ í•¨ìˆ˜ ëª©ë¡ì— ë„£ì–´ë‘ 
+    public void GameRestart()   // ê²Œì„ Over ìƒíƒœì—ì„œ Restart ë²„íŠ¼ì„ ëˆŒë €ì„ ë•Œ ì‹¤í–‰ì‹œí‚¬ í•¨ìˆ˜. ê²Œì„ ì¬ì‹œì‘
     {    
-        SceneManager.LoadScene("LoadScene"); // ·Îµù¾À
+        SceneManager.LoadScene("LoadScene"); // ë¡œë”©ì”¬
         GameManager.Instance.Restart();
         GameManager.Instance.Score = 0;
         // UnityScene.LoadSceneMode.Single("LoadScene");

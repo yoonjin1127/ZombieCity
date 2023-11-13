@@ -12,18 +12,18 @@ public class Grenade : MonoBehaviour
         StartCoroutine(Explosion());
     }
 
-    // Æø¹ß ÄÚ·çÆ¾
+    // í­ë°œ ì½”ë£¨í‹´
     IEnumerator Explosion()
     {
         yield return new WaitForSeconds(3f);
-        rigid.velocity = Vector3.zero;  // ¹°¸®Àû ¼Óµµ¸¦ ¸ğµÎ Vector3.zero·Î ÃÊ±âÈ­
+        rigid.velocity = Vector3.zero;  // ë¬¼ë¦¬ì  ì†ë„ë¥¼ ëª¨ë‘ Vector3.zeroë¡œ ì´ˆê¸°í™”
         rigid.angularVelocity = Vector3.zero;
-        // ¸Ş½¬´Â ºñÈ°¼ºÈ­, Æø¹ß È¿°ú´Â È°¼ºÈ­ÇÑ´Ù
+        // ë©”ì‰¬ëŠ” ë¹„í™œì„±í™”, í­ë°œ íš¨ê³¼ëŠ” í™œì„±í™”í•œë‹¤
         meshObj.SetActive(false);
         effectObj.SetActive(true);
 
-        // ±¸Ã¼¸ğ¾çÀÇ ·¹ÀÌÄ³½ºÆÃ, ½ÃÀÛ À§Ä¡, ¹İÁö¸§, ½î´Â ¹æÇâ, ·¹ÀÌ¸¦ ½î´Â ±æÀÌ 
-        RaycastHit[] rayHits = Physics.SphereCastAll(transform.position, 15, Vector3.up, 0f, LayerMask.GetMask("Enemy"));
+        // êµ¬ì²´ëª¨ì–‘ì˜ ë ˆì´ìºìŠ¤íŒ…, ì‹œì‘ ìœ„ì¹˜, ë°˜ì§€ë¦„, ì˜ëŠ” ë°©í–¥, ë ˆì´ë¥¼ ì˜ëŠ” ê¸¸ì´ 
+        RaycastHit[] rayHits = Physics.SphereCastAll(transform.position, 8, Vector3.up, 0f, LayerMask.GetMask("Monster"));
         foreach(RaycastHit hitObj in rayHits)
         {
             hitObj.transform.GetComponent<Enemy>().HitByGrenade(transform.position);

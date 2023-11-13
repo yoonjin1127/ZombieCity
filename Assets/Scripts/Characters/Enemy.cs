@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;   //  ³×ºñ°ÔÀÌ¼Ç »ç¿ëÀ» À§ÇÔÀÌ´Ù
+using UnityEngine.AI;   //  ë„¤ë¹„ê²Œì´ì…˜ ì‚¬ìš©ì„ ìœ„í•¨ì´ë‹¤
 using UnityEditor.Playables;
 using UnityEngine.ProBuilder.MeshOperations;
 
-#if UNITY_EDITOR    // ÀüÃ³¸®±â ¾È¿¡ ³Ö¾î¼­ ¼±¾ğÇØ¾ß ÇÔ
+#if UNITY_EDITOR    // ì „ì²˜ë¦¬ê¸° ì•ˆì— ë„£ì–´ì„œ ì„ ì–¸í•´ì•¼ í•¨
 using UnityEditor;
 #endif
 
@@ -14,69 +14,69 @@ public class Enemy : LivingEntity
     [SerializeField] GameObject playerHitEffect;
     private enum State
     {
-        Patrol,     // µ¹¾Æ´Ù´Ï´Â »óÅÂ
-        Tracking,   // ÇÃ·¹ÀÌ¾î¸¦ Ãß°İÇÏ´Â »óÅÂ
-        AttackBegin,    // °ø°İ ½ÃÀÛ
-        Attacking       // °ø°İ
+        Patrol,     // ëŒì•„ë‹¤ë‹ˆëŠ” ìƒíƒœ
+        Tracking,   // í”Œë ˆì´ì–´ë¥¼ ì¶”ê²©í•˜ëŠ” ìƒíƒœ
+        AttackBegin,    // ê³µê²© ì‹œì‘
+        Attacking       // ê³µê²©
     }
 
-    private State state;    // Á»ºñ »óÅÂ
+    private State state;    // ì¢€ë¹„ ìƒíƒœ
 
-    private NavMeshAgent agent; // °æ·Î°è»ê AI ¿¡ÀÌÀüÆ®
+    private NavMeshAgent agent; // ê²½ë¡œê³„ì‚° AI ì—ì´ì „íŠ¸
     private Animator animator;
 
-    public Transform attackRoot;    // ¶§¸®´Â À§Ä¡
-    public Transform eyeTransform;  // ´«³ôÀÌ
+    public Transform attackRoot;    // ë•Œë¦¬ëŠ” ìœ„ì¹˜
+    public Transform eyeTransform;  // ëˆˆë†’ì´
 
-    private AudioSource audioPlayer;    // ¿Àµğ¿À ¼Ò½º ÄÄÆ÷³ÍÆ®, ¼Ò¸® Àç»ı±â
-    public AudioClip hitClip;       // ÇÇ°İ ½Ã Àç»ıÇÒ ¼Ò¸®
-    public AudioClip deathClip;     // »ç¸Á ½Ã Àç»ıÇÒ ¼Ò¸®
+    private AudioSource audioPlayer;    // ì˜¤ë””ì˜¤ ì†ŒìŠ¤ ì»´í¬ë„ŒíŠ¸, ì†Œë¦¬ ì¬ìƒê¸°
+    public AudioClip hitClip;       // í”¼ê²© ì‹œ ì¬ìƒí•  ì†Œë¦¬
+    public AudioClip deathClip;     // ì‚¬ë§ ì‹œ ì¬ìƒí•  ì†Œë¦¬
 
-    private Renderer skinRenderer;  // ·»´õ·¯ ÄÄÆ÷³ÍÆ® (ÇÇºÎ»ö¿¡ µû¶ó Â÷ÀÌ¸¦ µÒ)
+    private Renderer skinRenderer;  // ë Œë”ëŸ¬ ì»´í¬ë„ŒíŠ¸ (í”¼ë¶€ìƒ‰ì— ë”°ë¼ ì°¨ì´ë¥¼ ë‘ )
 
-    public float runSpeed = 10f;    // Á»ºñ ÀÌµ¿ ¼Óµµ
-    [Range(0.01f, 2f)] public float turnSmoothTime = 0.1f;  // Á»ºñ ¹æÇâ È¸Àü »ç¿ë Áö¿¬½Ã°£. smoothDamp¿¡ »ç¿ëÇÒ °Í.
-    private float turnSmoothVelocity;  // smoothDamp¿¡ »ç¿ëÇÒ °Í. ºÎµå·´°Ô È¸ÀüÇÏ´Â ½Ç½Ã°£ º¯È­·®
+    public float runSpeed = 10f;    // ì¢€ë¹„ ì´ë™ ì†ë„
+    [Range(0.01f, 2f)] public float turnSmoothTime = 0.1f;  // ì¢€ë¹„ ë°©í–¥ íšŒì „ ì‚¬ìš© ì§€ì—°ì‹œê°„. smoothDampì— ì‚¬ìš©í•  ê²ƒ.
+    private float turnSmoothVelocity;  // smoothDampì— ì‚¬ìš©í•  ê²ƒ. ë¶€ë“œëŸ½ê²Œ íšŒì „í•˜ëŠ” ì‹¤ì‹œê°„ ë³€í™”ëŸ‰
 
-    public float damage = 30f;        // °ø°İ·Â
-    public float attackRadius = 2f; // °ø°İ ¹İ°æ(¹İÁö¸§)
-    private float attackDistance;   // °ø°İ ½Ãµµ°Å¸®
+    public float damage = 30f;        // ê³µê²©ë ¥
+    public float attackRadius = 2f; // ê³µê²© ë°˜ê²½(ë°˜ì§€ë¦„)
+    private float attackDistance;   // ê³µê²© ì‹œë„ê±°ë¦¬
 
-    public float fieldOfView = 50f; // Á»ºñÀÇ ½Ã¾ß °¢
-    public float viewDistance = 10f;// Á»ºñ°¡ º¼ ¼ö ÀÖ´Â °Å¸®
-    public float patrolSpeed = 3f;  // Á»ºñ°¡ µ¹¾Æ´Ù´Ï´Â ¼Óµµ(Patrol »óÅÂÀÏ ¶§)
+    public float fieldOfView = 50f; // ì¢€ë¹„ì˜ ì‹œì•¼ ê°
+    public float viewDistance = 10f;// ì¢€ë¹„ê°€ ë³¼ ìˆ˜ ìˆëŠ” ê±°ë¦¬
+    public float patrolSpeed = 3f;  // ì¢€ë¹„ê°€ ëŒì•„ë‹¤ë‹ˆëŠ” ì†ë„(Patrol ìƒíƒœì¼ ë•Œ)
 
     private float idleTimer = 0f;
-    public float idleTimeThreshold = 0.01f;    // ÀÌ ½Ã°£ ÀÌ»óÀ¸·Î ¸ØÃçÀÖ´Ù¸é °æ·Î ÀçÅ½»ö
+    public float idleTimeThreshold = 0.01f;    // ì´ ì‹œê°„ ì´ìƒìœ¼ë¡œ ë©ˆì¶°ìˆë‹¤ë©´ ê²½ë¡œ ì¬íƒìƒ‰
 
-    [HideInInspector] public LivingEntity targetEntity; // ÃßÀûÇÒ ´ë»ó
-    public LayerMask whatIsTarget;  // ÃßÀû ´ë»ó ·¹ÀÌ¾î
+    [HideInInspector] public LivingEntity targetEntity; // ì¶”ì í•  ëŒ€ìƒ
+    public LayerMask whatIsTarget;  // ì¶”ì  ëŒ€ìƒ ë ˆì´ì–´
 
-    private RaycastHit[] hits = new RaycastHit[10]; // 10»çÀÌÁî(Ãæµ¹ÁöÁ¡)ÀÇ ·¹ÀÌÄ³½ºÆ®È÷Æ® ¹è¿­. ¹üÀ§±â¹İÀÇ °ø°İ ±¸Çö.
-    private List<LivingEntity>lastAttackedTargets = new List<LivingEntity>();   // °ø°İÀÌ ¶È°°Àº ´ë»ó¿¡°Ô µÎ¹ø Àû¿ëµÇÁö ¾Êµµ·Ï ÇÏ±â À§ÇÑ ¸®½ºÆ®
+    private RaycastHit[] hits = new RaycastHit[10]; // 10ì‚¬ì´ì¦ˆ(ì¶©ëŒì§€ì )ì˜ ë ˆì´ìºìŠ¤íŠ¸íˆíŠ¸ ë°°ì—´. ë²”ìœ„ê¸°ë°˜ì˜ ê³µê²© êµ¬í˜„.
+    private List<LivingEntity>lastAttackedTargets = new List<LivingEntity>();   // ê³µê²©ì´ ë˜‘ê°™ì€ ëŒ€ìƒì—ê²Œ ë‘ë²ˆ ì ìš©ë˜ì§€ ì•Šë„ë¡ í•˜ê¸° ìœ„í•œ ë¦¬ìŠ¤íŠ¸
 
-    // ÃßÀûÇÒ ´ë»óÀÌ Á¸ÀçÇÏ´ÂÁöÀÇ ¿©ºÎ
-    // ÃßÀûÇÒ ´ë»óÀÌ Á¸Àç && Á×Àº »óÅÂ°¡ ¾Æ´Ô
+    // ì¶”ì í•  ëŒ€ìƒì´ ì¡´ì¬í•˜ëŠ”ì§€ì˜ ì—¬ë¶€
+    // ì¶”ì í•  ëŒ€ìƒì´ ì¡´ì¬ && ì£½ì€ ìƒíƒœê°€ ì•„ë‹˜
     private bool hasTarget => targetEntity != null && !targetEntity.dead;
 
     [SerializeField] AudioSource zombieAudio;
 
     
-    // ¾À »ó¿¡¼­¸¸ º¸ÀÌ´Â ±âÁî¸ğ
+    // ì”¬ ìƒì—ì„œë§Œ ë³´ì´ëŠ” ê¸°ì¦ˆëª¨
     #if UNITY_EDITOR
-    private void OnDrawGizmosSelected() // ¿ÀºêÁ§Æ®°¡ ¼±ÅÃµÆÀ» ¶§ ±âÁî¸ğ°¡ º¸ÀÌ°Ô ÇÏ´Â ÀÌº¥Æ® ÇÔ¼ö
+    private void OnDrawGizmosSelected() // ì˜¤ë¸Œì íŠ¸ê°€ ì„ íƒëì„ ë•Œ ê¸°ì¦ˆëª¨ê°€ ë³´ì´ê²Œ í•˜ëŠ” ì´ë²¤íŠ¸ í•¨ìˆ˜
     {
         if (attackRoot != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(attackRoot.position, attackRadius);   // °ø°İ¹İ°æÀ» ±¸·Î ±×·ÁÁØ´Ù
+            Gizmos.DrawSphere(attackRoot.position, attackRadius);   // ê³µê²©ë°˜ê²½ì„ êµ¬ë¡œ ê·¸ë ¤ì¤€ë‹¤
         }
 
-        var leftRayRotation = Quaternion.AngleAxis(-fieldOfView * 0.5f, Vector3.up);    // Á»ºñÀÇ ½Ã¾ß ¹üÀ§(È£ ¸ğ¾ç)
-        var leftRayDirection = leftRayRotation * transform.forward; // ¿ŞÂÊ ³¡ÁöÁ¡À¸·Î ÇâÇÏ´Â ¹æÇâ
+        var leftRayRotation = Quaternion.AngleAxis(-fieldOfView * 0.5f, Vector3.up);    // ì¢€ë¹„ì˜ ì‹œì•¼ ë²”ìœ„(í˜¸ ëª¨ì–‘)
+        var leftRayDirection = leftRayRotation * transform.forward; // ì™¼ìª½ ëì§€ì ìœ¼ë¡œ í–¥í•˜ëŠ” ë°©í–¥
         Handles.color = Color.white;
-        // ºÎÃ¤²ÃÀ» ±×¸®´Â DrawSolidArc
-        // ´«³ôÀÌ À§Ä¡¿¡¼­ ±×·ÁÁö°í, º¤ÅÍ3¾÷ ÃàÀ» ±âÁØÀ¸·Î, ¿À¸¥ÂÊÀ¸·Î fieldOfView °¢µµ¸¸Å­ È¸ÀüÇÏ¸ç, ¹İÁö¸§ÀÌ viewDistanceÀÎ ºÎÃ¤²ÃÀ» ±×¸²
+        // ë¶€ì±„ê¼´ì„ ê·¸ë¦¬ëŠ” DrawSolidArc
+        // ëˆˆë†’ì´ ìœ„ì¹˜ì—ì„œ ê·¸ë ¤ì§€ê³ , ë²¡í„°3ì—… ì¶•ì„ ê¸°ì¤€ìœ¼ë¡œ, ì˜¤ë¥¸ìª½ìœ¼ë¡œ fieldOfView ê°ë„ë§Œí¼ íšŒì „í•˜ë©°, ë°˜ì§€ë¦„ì´ viewDistanceì¸ ë¶€ì±„ê¼´ì„ ê·¸ë¦¼
         Handles.DrawSolidArc(eyeTransform.position, Vector3.up, leftRayDirection, fieldOfView, viewDistance);
     }
 #endif
@@ -84,50 +84,50 @@ public class Enemy : LivingEntity
 
     private void Awake()
     {
-        // ÄÄÆ÷³ÍÆ® °¡Á®¿À±â
+        // ì»´í¬ë„ŒíŠ¸ ê°€ì ¸ì˜¤ê¸°
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
         audioPlayer = GetComponent<AudioSource>();
-        skinRenderer = GetComponentInChildren<Renderer>();  // Á»ºñÀÇ ÀÚ½Ä ¿ÀºêÁ§Æ®µé Áß¿¡¼­ Renderer ÄÄÆ÷³ÍÆ®¸¦ °¡Áø ¿ÀºêÁ§Æ®¸¦ Renderer Å¸ÀÔÀ¸·Î °¡Á®¿À±â
+        skinRenderer = GetComponentInChildren<Renderer>();  // ì¢€ë¹„ì˜ ìì‹ ì˜¤ë¸Œì íŠ¸ë“¤ ì¤‘ì—ì„œ Renderer ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì§„ ì˜¤ë¸Œì íŠ¸ë¥¼ Renderer íƒ€ì…ìœ¼ë¡œ ê°€ì ¸ì˜¤ê¸°
 
-        // °ø°İÀ» ½ÃµµÇÏ´Â °Å¸®
-        // Á»ºñÀÎ ÀÚ±â ÀÚ½ÅÀÇ À§Ä¡·ÎºÎÅÍ attackRoot»çÀÌÀÇ °Å¸®¿¡ °ø°İ¹İ°æÀ» ´õÇÔ
+        // ê³µê²©ì„ ì‹œë„í•˜ëŠ” ê±°ë¦¬
+        // ì¢€ë¹„ì¸ ìê¸° ìì‹ ì˜ ìœ„ì¹˜ë¡œë¶€í„° attackRootì‚¬ì´ì˜ ê±°ë¦¬ì— ê³µê²©ë°˜ê²½ì„ ë”í•¨
         attackDistance = Vector3.Distance(transform.position,
                             new Vector3(attackRoot.position.x, transform.position.y, attackRoot.position.z)) + 
                             attackRadius;
 
         attackDistance += agent.radius;
 
-        // ¸ØÃß°í °ø°İÀ» ½ÃµµÇÒ °Å¸®
+        // ë©ˆì¶”ê³  ê³µê²©ì„ ì‹œë„í•  ê±°ë¦¬
         agent.stoppingDistance = attackDistance;
 
-        // ¼øÂû ¼Óµµ ÃÊ±âÈ­
+        // ìˆœì°° ì†ë„ ì´ˆê¸°í™”
         agent.speed = patrolSpeed;
     }
 
-    // Á»ºñ AIÀÇ ÃÊ±â ½ºÆåÀ» °áÁ¤ÇÏ´Â ¼Â¾÷ ¸Ş¼­µå
+    // ì¢€ë¹„ AIì˜ ì´ˆê¸° ìŠ¤í™ì„ ê²°ì •í•˜ëŠ” ì…‹ì—… ë©”ì„œë“œ
     public void SetUp(float health, float damage,
         float runSpeed, float patrolSpeed, Color skinColor)
     {
-        // Ã¼·Â ¼³Á¤
-        this.startingHealth = health;   // ÃÊ±â ½ÃÀÛ Ã¼·Â
-        this.health = health;           // Ã¼·Â
+        // ì²´ë ¥ ì„¤ì •
+        this.startingHealth = health;   // ì´ˆê¸° ì‹œì‘ ì²´ë ¥
+        this.health = health;           // ì²´ë ¥
 
-        // ³»ºñ¸Ş½¬ ¿¡ÀÌÀüÆ®ÀÇ ÀÌµ¿¼Óµµ ¼³Á¤
+        // ë‚´ë¹„ë©”ì‰¬ ì—ì´ì „íŠ¸ì˜ ì´ë™ì†ë„ ì„¤ì •
         this.runSpeed = runSpeed;
         this.patrolSpeed = patrolSpeed;
 
-        this.damage = damage;           // °ø°İ·Â
+        this.damage = damage;           // ê³µê²©ë ¥
 
-        // ·»´õ·¯°¡ »ç¿ëÁßÀÎ ¸¶Å×¸®¾óÀÇ ÄÃ·¯¸¦ º¯°æ, ¿ÜÇü »öÀÌ º¯ÇÔ
+        // ë Œë”ëŸ¬ê°€ ì‚¬ìš©ì¤‘ì¸ ë§ˆí…Œë¦¬ì–¼ì˜ ì»¬ëŸ¬ë¥¼ ë³€ê²½, ì™¸í˜• ìƒ‰ì´ ë³€í•¨
         skinRenderer.material.color = skinColor;
 
-        agent.speed = patrolSpeed;      // À§¿¡¼­ º¯°æµÈ patrolSpeed·Î ´Ù½Ã Àû¿ë
+        agent.speed = patrolSpeed;      // ìœ„ì—ì„œ ë³€ê²½ëœ patrolSpeedë¡œ ë‹¤ì‹œ ì ìš©
     }
 
     private void Start()
     {
-        // °ÔÀÓ ¿ÀºêÁ§Æ® È°¼ºÈ­¿Í µ¿½Ã¿¡ AIÀÇ ÃßÀû·çÆ¾ ½ÃÀÛ
+        // ê²Œì„ ì˜¤ë¸Œì íŠ¸ í™œì„±í™”ì™€ ë™ì‹œì— AIì˜ ì¶”ì ë£¨í‹´ ì‹œì‘
         StartCoroutine(UpdatePath());
     }
 
@@ -135,15 +135,15 @@ public class Enemy : LivingEntity
     {
         if (dead) return;
 
-        // ÃßÀû ´ë»ó°úÀÇ °Å¸®¸¦ µûÁ®¼­ °ø°İÀ» ½ÇÇàÇÒÁö °Ë»ç
+        // ì¶”ì  ëŒ€ìƒê³¼ì˜ ê±°ë¦¬ë¥¼ ë”°ì ¸ì„œ ê³µê²©ì„ ì‹¤í–‰í• ì§€ ê²€ì‚¬
         if (state == State.Tracking &&
             Vector3.Distance(targetEntity.transform.position, transform.position) <= attackDistance)
         {
             BeginAttack();
         }
 
-        // ÃßÀû ´ë»óÀÇ Á¸Àç ¿©ºÎ¿¡ µû¶ó ´Ù¸¥ ¾Ö´Ï¸ŞÀÌ¼ÇÀ» Àç»ı
-        // Æò¼Ò¿¡´Â °È°í, ÃßÀûÇÒ ¶§´Â ´Ş¸®°Ô ¼³Á¤
+        // ì¶”ì  ëŒ€ìƒì˜ ì¡´ì¬ ì—¬ë¶€ì— ë”°ë¼ ë‹¤ë¥¸ ì• ë‹ˆë©”ì´ì…˜ì„ ì¬ìƒ
+        // í‰ì†Œì—ëŠ” ê±·ê³ , ì¶”ì í•  ë•ŒëŠ” ë‹¬ë¦¬ê²Œ ì„¤ì •
         animator.SetFloat("MoveSpeed", agent.desiredVelocity.magnitude);
     }
 
@@ -151,15 +151,15 @@ public class Enemy : LivingEntity
     {
         if (dead) return;
 
-        // °ø°İÀ» ½ÃÀÛÇÏ°Å³ª °ø°İÇÏ°í ÀÖ´Â Áß¿¡´Â Á»ºñ ÀÚ½ÅÀÌ Å¸°ÙÀ» ÇâÇØ È¸ÀüÇÏµµ·Ï ÇÔ
+        // ê³µê²©ì„ ì‹œì‘í•˜ê±°ë‚˜ ê³µê²©í•˜ê³  ìˆëŠ” ì¤‘ì—ëŠ” ì¢€ë¹„ ìì‹ ì´ íƒ€ê²Ÿì„ í–¥í•´ íšŒì „í•˜ë„ë¡ í•¨
         if (state == State.AttackBegin || state == State.Attacking)
         {
             var lookRotation =
-                // Å¸°Ù À§Ä¡ - ÀÚ±â ÀÚ½ÅÀÇ À§Ä¡ = Å¸°ÙÀ» ¹Ù¶óº¸´Â ¹æÇâ
+                // íƒ€ê²Ÿ ìœ„ì¹˜ - ìê¸° ìì‹ ì˜ ìœ„ì¹˜ = íƒ€ê²Ÿì„ ë°”ë¼ë³´ëŠ” ë°©í–¥
                 Quaternion.LookRotation(targetEntity.transform.position - transform.position);
             var targetAngleY = lookRotation.eulerAngles.y;
 
-            // ºÎµå·´°Ô ¼³Á¤
+            // ë¶€ë“œëŸ½ê²Œ ì„¤ì •
             transform.eulerAngles = Vector3.up * Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngleY,
                 ref turnSmoothVelocity, turnSmoothTime);
         }
@@ -168,28 +168,28 @@ public class Enemy : LivingEntity
         {
             zombieAudio.Play();
             var direction = transform.forward;
-            // Á»ºñ°¡ ´ÙÀ½ FixedUpdate½ÇÇà±îÁöÀÇ »çÀÕ½Ã°£ÀÎ TIme.fixedDeltaTimeµ¿¾È ÀÌµ¿ÇÑ °Å¸®°¡ µÈ´Ù
+            // ì¢€ë¹„ê°€ ë‹¤ìŒ FixedUpdateì‹¤í–‰ê¹Œì§€ì˜ ì‚¬ì‡ì‹œê°„ì¸ TIme.fixedDeltaTimeë™ì•ˆ ì´ë™í•œ ê±°ë¦¬ê°€ ëœë‹¤
             var deltaDistance = agent.velocity.magnitude * Time.deltaTime;
 
-            // OverlapSphereÀ» »ç¿ëÇÏ¸é ÇÁ·¹ÀÓ »çÀÌ¿¡ ¿ÀÂ÷¹üÀ§°¡ ¹ß»ıÇÒ ¼ö ÀÖ´Ù
-            // SphereCastNonAlloc ÇÔ¼ö´Â ¿òÁ÷ÀÎ ±ËÀû »çÀÌ¿¡ °ãÄ¡´Â Ãæµ¹Ã¼¸¦ °Ë»ç, °¨ÁöÇÑ´Ù 
-            // size´Â hit ¹è¿­ÀÇ Å©±â
+            // OverlapSphereì„ ì‚¬ìš©í•˜ë©´ í”„ë ˆì„ ì‚¬ì´ì— ì˜¤ì°¨ë²”ìœ„ê°€ ë°œìƒí•  ìˆ˜ ìˆë‹¤
+            // SphereCastNonAlloc í•¨ìˆ˜ëŠ” ì›€ì§ì¸ ê¶¤ì  ì‚¬ì´ì— ê²¹ì¹˜ëŠ” ì¶©ëŒì²´ë¥¼ ê²€ì‚¬, ê°ì§€í•œë‹¤ 
+            // sizeëŠ” hit ë°°ì—´ì˜ í¬ê¸°
             var size = Physics.SphereCastNonAlloc(attackRoot.position, attackRadius, direction, hits, deltaDistance,
                 whatIsTarget);
 
             for (var i = 0; i < size; i++)
             {
-                // °¨ÁöµÈ °ÍµéÀÌ ¸ğÀÎ hit ¹è¿­¿¡¼­ Player CharacterÀÎ °ÍÀ» ¼øÈ¸ÇÏ¸ç Ã£¾Æ °ø°İÀ» Ã³¸®ÇÑ´Ù
+                // ê°ì§€ëœ ê²ƒë“¤ì´ ëª¨ì¸ hit ë°°ì—´ì—ì„œ Player Characterì¸ ê²ƒì„ ìˆœíšŒí•˜ë©° ì°¾ì•„ ê³µê²©ì„ ì²˜ë¦¬í•œë‹¤
                 var attackTargetEntity = hits[i].collider.GetComponent<LivingEntity>(); 
 
-                // lastAttackedTargets ¾ÈÀâÈû ¼öÁ¤
+                // lastAttackedTargets ì•ˆì¡í˜ ìˆ˜ì •
                 if (attackTargetEntity != null && !lastAttackedTargets.Contains(attackTargetEntity))
                 {
                     var message = new DamageMessage();
-                    message.amount = damage;        // °ø°İ·®
-                    message.damager = gameObject;   // °ø°İÀÚ´Â Á»ºñ ÀÚ½Å
+                    message.amount = damage;        // ê³µê²©ëŸ‰
+                    message.damager = gameObject;   // ê³µê²©ìëŠ” ì¢€ë¹„ ìì‹ 
 
-                    // °ø°İÀÌ µé¾î°£ ÁöÁ¡
+                    // ê³µê²©ì´ ë“¤ì–´ê°„ ì§€ì 
                     if (hits[i].distance <=0f)
                     {
                         message.hitPoint = attackRoot.position;
@@ -199,22 +199,22 @@ public class Enemy : LivingEntity
                         message.hitPoint = hits[i].point;
                     }
 
-                    // °ø°İÀÌ µé¾î°¡´Â ¹æÇâ
+                    // ê³µê²©ì´ ë“¤ì–´ê°€ëŠ” ë°©í–¥
                     message.hitNormal = hits[i].normal;
 
                     attackTargetEntity.ApplyDamage(message);
 
-                    // ÀÌ¹Ì °ø°İÀ» °¡ÇÑ »ó´ë¹æÀÌ¶ó´Â ¶æ¿¡¼­
+                    // ì´ë¯¸ ê³µê²©ì„ ê°€í•œ ìƒëŒ€ë°©ì´ë¼ëŠ” ëœ»ì—ì„œ
                     lastAttackedTargets.Add(attackTargetEntity);
 
-                    break;          // °ø°İ ´ë»óÀ» Ã£¾ÒÀ¸´Ï for¹® Á¾·á
+                    break;          // ê³µê²© ëŒ€ìƒì„ ì°¾ì•˜ìœ¼ë‹ˆ forë¬¸ ì¢…ë£Œ
                 }
             }
         }
     }
     private IEnumerator UpdatePath()
     {
-        // »ì¾ÆÀÖ´Â µ¿¾È ¹«ÇÑ·çÇÁ
+        // ì‚´ì•„ìˆëŠ” ë™ì•ˆ ë¬´í•œë£¨í”„
         while (!dead)
         {
             if (hasTarget)
@@ -225,79 +225,79 @@ public class Enemy : LivingEntity
                     agent.speed = runSpeed;
                 }
 
-                // ÃßÀû ´ë»ó Á¸Àç : °æ·Î¸¦ °»½ÅÇÏ°í AI ÀÌµ¿À» °è¼Ó ÁøÇà
+                // ì¶”ì  ëŒ€ìƒ ì¡´ì¬ : ê²½ë¡œë¥¼ ê°±ì‹ í•˜ê³  AI ì´ë™ì„ ê³„ì† ì§„í–‰
                 agent.SetDestination(targetEntity.transform.position);
             }
             else
             {
                 if (targetEntity != null) targetEntity = null;
 
-                // Á¤Âû »óÅÂ°¡ ¾Æ´Ï¾ú´Ù¸é ÀÌÁ¦ ´Ù½Ã Á¤Âû»óÅÂ·Î º¯°æ
+                // ì •ì°° ìƒíƒœê°€ ì•„ë‹ˆì—ˆë‹¤ë©´ ì´ì œ ë‹¤ì‹œ ì •ì°°ìƒíƒœë¡œ ë³€ê²½
                 if (state != State.Patrol)
                 {
                     state = State.Patrol;
                     agent.speed = patrolSpeed;
                 }
 
-                // ÀÏ´Ü ½Ã¾ß¸¦ ÅëÇØ °¨ÁöÇÏ±â Àü¿¡ NavMesh À§ÀÇ ¾î¶² ÀÓÀÇÀÇ ÁöÁ¡À¸·Î ÀÌµ¿ÇÏ°Ô ÇÑ´Ù.
-                // °Å¸®°¡ 1º¸´Ù Àû°Ô ³²¾ÒÀ» ¶§, °æ·ÎÀûÇÕ¼º-¸·Èù°æ·ÎÀÏ¶§
+                // ì¼ë‹¨ ì‹œì•¼ë¥¼ í†µí•´ ê°ì§€í•˜ê¸° ì „ì— NavMesh ìœ„ì˜ ì–´ë–¤ ì„ì˜ì˜ ì§€ì ìœ¼ë¡œ ì´ë™í•˜ê²Œ í•œë‹¤.
+                // ê±°ë¦¬ê°€ 1ë³´ë‹¤ ì ê²Œ ë‚¨ì•˜ì„ ë•Œ, ê²½ë¡œì í•©ì„±-ë§‰íŒê²½ë¡œì¼ë•Œ
                 if (agent.remainingDistance <= 1f || agent.pathStatus == NavMeshPathStatus.PathPartial)
                 {
                     var patrolPosition = Utility.GetRandomPointOnNavMesh(transform.position, 20f, NavMesh.AllAreas);
                     agent.SetDestination(patrolPosition);
                 }
 
-                // 20 À¯´ÖÀÇ ¹İÁö¸§À» °¡Áø °¡»óÀÇ ±¸¸¦ ±×·ÈÀ» ¶§, ±¸¿Í °ãÄ¡´Â ¸ğµç Ãæµ¹Ã¼¸¦ °¡Á®¿È
-                // ½Ã¾ß °¢ ³»¿¡ ÀÖ´Â ¸ğµç ColliderµéÀ» ¹è¿­¿¡ ´ã´Â´Ù
-                // ´Ü, whatIsTarget ·¹ÀÌ¾î¸¦ °¡Áø Äİ¶óÀÌ´õ¸¸ °¡Á®¿Àµµ·Ï ÇÊÅÍ¸µ
+                // 20 ìœ ë‹›ì˜ ë°˜ì§€ë¦„ì„ ê°€ì§„ ê°€ìƒì˜ êµ¬ë¥¼ ê·¸ë ¸ì„ ë•Œ, êµ¬ì™€ ê²¹ì¹˜ëŠ” ëª¨ë“  ì¶©ëŒì²´ë¥¼ ê°€ì ¸ì˜´
+                // ì‹œì•¼ ê° ë‚´ì— ìˆëŠ” ëª¨ë“  Colliderë“¤ì„ ë°°ì—´ì— ë‹´ëŠ”ë‹¤
+                // ë‹¨, whatIsTarget ë ˆì´ì–´ë¥¼ ê°€ì§„ ì½œë¼ì´ë”ë§Œ ê°€ì ¸ì˜¤ë„ë¡ í•„í„°ë§
                 var colliders = Physics.OverlapSphere(eyeTransform.position, viewDistance, whatIsTarget);
 
-                // ¸ğµç Äİ¶óÀÌ´õµéÀ» ¼øÈ¸ÇÏ¸é¼­, »ì¾ÆÀÖ´Â LivingEntity Ã£±â
+                // ëª¨ë“  ì½œë¼ì´ë”ë“¤ì„ ìˆœíšŒí•˜ë©´ì„œ, ì‚´ì•„ìˆëŠ” LivingEntity ì°¾ê¸°
                 foreach (var collider in colliders)
                 {
                     if (!IsTargetOnSight(collider.transform)) continue;
 
                     var livingEntity = collider.GetComponent<LivingEntity>();
 
-                    // LivingEntity ÄÄÆ÷³ÍÆ®°¡ Á¸ÀçÇÏ¸ç, ÇØ´ç LivingEntity°¡ »ì¾ÆÀÖ´Ù¸é,
+                    // LivingEntity ì»´í¬ë„ŒíŠ¸ê°€ ì¡´ì¬í•˜ë©°, í•´ë‹¹ LivingEntityê°€ ì‚´ì•„ìˆë‹¤ë©´,
                     if (livingEntity != null && !livingEntity.dead)
                     {
-                        // ÃßÀû ´ë»óÀ» ÇØ´ç LivingEntity·Î ¼³Á¤
+                        // ì¶”ì  ëŒ€ìƒì„ í•´ë‹¹ LivingEntityë¡œ ì„¤ì •
                         targetEntity = livingEntity;
 
-                        // for¹® ·çÇÁ Áï½Ã Á¤Áö
+                        // forë¬¸ ë£¨í”„ ì¦‰ì‹œ ì •ì§€
                         break;
                     }
                 }
-                // AI ÀÌµ¿¿©ºÎ Ã¼Å©
+                // AI ì´ë™ì—¬ë¶€ ì²´í¬
                 if (agent.velocity.sqrMagnitude <= 0.01f)
                 {
-                    // ÀÏÁ¤ ½Ã°£ ¸ØÃá °æ¿ì
+                    // ì¼ì • ì‹œê°„ ë©ˆì¶˜ ê²½ìš°
                     idleTimer += Time.deltaTime;
                     if (idleTimer >= idleTimeThreshold)
                     {
-                        // °æ·Î ÀçÅ½»öÈÄ ÀÌµ¿
+                        // ê²½ë¡œ ì¬íƒìƒ‰í›„ ì´ë™
                         var patrolPosition = Utility.GetRandomPointOnNavMesh(transform.position, 20f, NavMesh.AllAreas);
                         agent.SetDestination(patrolPosition);
 
-                        // Å½»ö ÈÄ Å¸ÀÌ¸Ó ÃÊ±âÈ­
+                        // íƒìƒ‰ í›„ íƒ€ì´ë¨¸ ì´ˆê¸°í™”
                         idleTimer = 0f;
                     }
                 }
 
                 else
                 {
-                    // AI°¡ ¿òÁ÷ÀÌ´Â ÁßÀÎ °æ¿ì Å¸ÀÌ¸Ó ÃÊ±âÈ­
+                    // AIê°€ ì›€ì§ì´ëŠ” ì¤‘ì¸ ê²½ìš° íƒ€ì´ë¨¸ ì´ˆê¸°í™”
                     idleTimer = 0f;
                 }
             }
-            // 0.05ÃÊ ½Ã°£ °£°İÀ» µÎ¸é¼­ »ì¾Æ ÀÖ´Â µ¿¾È ¹«ÇÑ ·çÇÁ ¹İº¹ Ã³¸®
+            // 0.05ì´ˆ ì‹œê°„ ê°„ê²©ì„ ë‘ë©´ì„œ ì‚´ì•„ ìˆëŠ” ë™ì•ˆ ë¬´í•œ ë£¨í”„ ë°˜ë³µ ì²˜ë¦¬
             yield return new WaitForSeconds(0.01f);
         }
     }
     public override bool ApplyDamage(DamageMessage damageMessage)
     {
-        if (!base.ApplyDamage(damageMessage)) return false; // µ¥¹ÌÁö Ã³¸®
+        if (!base.ApplyDamage(damageMessage)) return false; // ë°ë¯¸ì§€ ì²˜ë¦¬
 
         if (targetEntity == null)
         {
@@ -306,9 +306,9 @@ public class Enemy : LivingEntity
 
         RaycastHit hit;
 
-        // TODO : ¿ÀºêÁ§Æ®Ç®·Î °íÄ¡±â
-        // EffectManager.Instance.PlayHitEffect(damageMessage.hitPoint, damageMessage.hitNormal, transform, EffectManager.EffectType.Flesh);   // Å¸°İ ÆÄÆ¼Å¬ È¿°ú Àç»ı
-        audioPlayer.PlayOneShot(hitClip);   // ¿Àµğ¿À Àç»ı
+        // TODO : ì˜¤ë¸Œì íŠ¸í’€ë¡œ ê³ ì¹˜ê¸°
+        // EffectManager.Instance.PlayHitEffect(damageMessage.hitPoint, damageMessage.hitNormal, transform, EffectManager.EffectType.Flesh);   // íƒ€ê²© íŒŒí‹°í´ íš¨ê³¼ ì¬ìƒ
+        audioPlayer.PlayOneShot(hitClip);   // ì˜¤ë””ì˜¤ ì¬ìƒ
 
         return true;
     }
@@ -317,15 +317,15 @@ public class Enemy : LivingEntity
     {
         state = State.AttackBegin;
 
-        agent.isStopped = true;     // Àá½Ã ÃßÀû Á¤Áö
-        animator.SetTrigger("Attack");  // °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÃÀÛ
+        agent.isStopped = true;     // ì ì‹œ ì¶”ì  ì •ì§€
+        animator.SetTrigger("Attack");  // ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì‹œì‘
     }
 
     public void EnableAttack()
     {
         state = State.Attacking;
 
-        // ÀÌÀü±îÁö °ø°İÇÑ ´ë»óµéÀÌ ´ã°ÜÀÖ´Â lastAttackeTargets ¸®½ºÆ® ºñ¿ò
+        // ì´ì „ê¹Œì§€ ê³µê²©í•œ ëŒ€ìƒë“¤ì´ ë‹´ê²¨ìˆëŠ” lastAttackeTargets ë¦¬ìŠ¤íŠ¸ ë¹„ì›€
         lastAttackedTargets.Clear();
     }
 
@@ -333,28 +333,28 @@ public class Enemy : LivingEntity
     {
         if (hasTarget)
         {
-            // Å¸°ÙÀÌ ¿©ÀüÈ÷ ³²¾ÆÀÖ´Ù¸é »óÅÂ¸¦ State.TrackingÀ¸·Î µÇµ¹¸²
+            // íƒ€ê²Ÿì´ ì—¬ì „íˆ ë‚¨ì•„ìˆë‹¤ë©´ ìƒíƒœë¥¼ State.Trackingìœ¼ë¡œ ë˜ëŒë¦¼
             state = State.Tracking;
         }
         else
         {
-            // Å¸°ÙÀÌ ÀÌÁ¦ ¾ø´Ù¸é »óÅÂ¸¦ State.Patrol·Î µÇµ¹¸²
+            // íƒ€ê²Ÿì´ ì´ì œ ì—†ë‹¤ë©´ ìƒíƒœë¥¼ State.Patrolë¡œ ë˜ëŒë¦¼
             state = State.Patrol;
         }
-        // AI Agent°¡ ´Ù½Ã ¿òÁ÷ÀÌµµ·Ï agent.isStopped = false
+        // AI Agentê°€ ë‹¤ì‹œ ì›€ì§ì´ë„ë¡ agent.isStopped = false
         agent.isStopped = false;
     }
 
     private bool IsTargetOnSight(Transform target)
     {
-        // ·¹ÀÌÄ³½ºÆ® °á°ú Á¤º¸°¡ ´ã±æ ÄÁÅ×ÀÌ³Ê
+        // ë ˆì´ìºìŠ¤íŠ¸ ê²°ê³¼ ì •ë³´ê°€ ë‹´ê¸¸ ì»¨í…Œì´ë„ˆ
         RaycastHit hit;
 
         var direction = target.position - eyeTransform.position;
 
         direction.y = eyeTransform.forward.y;
 
-        // ±× ±¤¼±ÀÌ ½Ã¾ß°¢À» ¹ş¾î³ª¼± ¾ÈµÇ¸ç
+        // ê·¸ ê´‘ì„ ì´ ì‹œì•¼ê°ì„ ë²—ì–´ë‚˜ì„  ì•ˆë˜ë©°
         if (Vector3.Angle(direction, eyeTransform.forward) > fieldOfView * 0.5f)
         {
             return false;
@@ -362,7 +362,7 @@ public class Enemy : LivingEntity
 
         direction = target.position - eyeTransform.position;
 
-        // ½Ã¾ß°¢ ³»¿¡ Á¸ÀçÇÏ´õ¶óµµ ±¤¼±ÀÌ Àå¾Ö¹°¿¡ ºÎµúÄ¡Áö ¾Ê°í ¸ñÇ¥¿¡ Àß ´ê¾Æ¾ß ÇÔ
+        // ì‹œì•¼ê° ë‚´ì— ì¡´ì¬í•˜ë”ë¼ë„ ê´‘ì„ ì´ ì¥ì• ë¬¼ì— ë¶€ë”ªì¹˜ì§€ ì•Šê³  ëª©í‘œì— ì˜ ë‹¿ì•„ì•¼ í•¨
         if (Physics.Raycast(eyeTransform.position, direction, out hit, viewDistance, whatIsTarget))
         {
             if (hit.transform == target) return true;
@@ -374,27 +374,33 @@ public class Enemy : LivingEntity
 
     public override void Die()
     {
-        // LivingEntityÀÇ Die()¸¦ ½ÇÇàÇÏ¿© ±âº» »ç¸Á Ã³¸® ½ÇÇà
+        // LivingEntityì˜ Die()ë¥¼ ì‹¤í–‰í•˜ì—¬ ê¸°ë³¸ ì‚¬ë§ ì²˜ë¦¬ ì‹¤í–‰
         base.Die();
 
-        // ´Ù¸¥ AIµéÀ» ¹æÇØÇÏÁö ¾Êµµ·Ï ÀÚ½ÅÀÇ ¸ğµç Äİ¶óÀÌ´õµéÀ» ºñÈ°¼ºÈ­
+        // ë‹¤ë¥¸ AIë“¤ì„ ë°©í•´í•˜ì§€ ì•Šë„ë¡ ìì‹ ì˜ ëª¨ë“  ì½œë¼ì´ë”ë“¤ì„ ë¹„í™œì„±í™”
         GetComponent<Collider>().enabled = false;
 
-        // AI ÃßÀûÀ» ÁßÁöÇÏ°í ³»ºñ¸Ş½¬ ÄÄÆ÷³ÍÆ®¸¦ ºñÈ°¼ºÈ­
+        // AI ì¶”ì ì„ ì¤‘ì§€í•˜ê³  ë‚´ë¹„ë©”ì‰¬ ì»´í¬ë„ŒíŠ¸ë¥¼ ë¹„í™œì„±í™”
         agent.enabled = false;
 
-        // »ç¸Á ¾Ö´Ï¸ŞÀÌ¼Ç Àç»ı
+        // ì‚¬ë§ ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
         animator.applyRootMotion = true;
         animator.SetTrigger("Die");
 
-        // »ç¸Á È¿°úÀ½ Àç»ı
+        // ì‚¬ë§ íš¨ê³¼ìŒ ì¬ìƒ
         if (deathClip != null) audioPlayer.PlayOneShot(deathClip);
     }
 
     public void HitByGrenade(Vector3 explosionPos)
     {
-        this.health -= 100;
+        this.health -= 200;
         Vector3 reactVec = transform.position - explosionPos;
+
+        if (health <= 0)
+        {
+            Die();
+            GameManager.Instance.AddScore(200);
+        }
     }
 
 }

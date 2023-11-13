@@ -18,8 +18,9 @@ public class Shop : BaseUI
     [SerializeField] private Button grenade;
     [SerializeField] private GameObject curGun;
     [SerializeField] private GameObject changeGun;
+    [SerializeField] private PlayerShooter shooter;
 
-    [SerializeField] private Throw throwInstance;
+    //[SerializeField] private Throw throwInstance;
 
     private void OnEnable()
     {
@@ -35,17 +36,17 @@ public class Shop : BaseUI
         grenade.onClick.RemoveListener(OnGrenadeButtonClicked);
     }
 
-    // ¹öÆ°À» ´©¸£°í »óÁ¡À» ¿©´Ý°Ô ÇÔ
-    // ÀÎÇ²½Ã½ºÅÛÀ» ÀÌ¿ë
+    // ë²„íŠ¼ì„ ëˆ„ë¥´ê³  ìƒì ì„ ì—¬ë‹«ê²Œ í•¨
+    // ì¸í’‹ì‹œìŠ¤í…œì„ ì´ìš©
     void Enter()
     {
-        // È­¸é Á¤Áß¾Ó¿¡ ¿Àµµ·Ï ÇÔ
+        // í™”ë©´ ì •ì¤‘ì•™ì— ì˜¤ë„ë¡ í•¨
         uiGroup.anchoredPosition = Vector3.zero;
     }
 
     void Exit()
     {
-        // È­¸é¿¡¼­ ³»·Á°¡µµ·Ï ÇÔ
+        // í™”ë©´ì—ì„œ ë‚´ë ¤ê°€ë„ë¡ í•¨
         uiGroup.anchoredPosition = Vector3.down * 1500;
     }
 
@@ -85,7 +86,7 @@ public class Shop : BaseUI
             ShopIn();
     }
 
-    // »óÇ°À» ±¸¸ÅÇßÀ» ¶§
+    // ìƒí’ˆì„ êµ¬ë§¤í–ˆì„ ë•Œ
     public void Purchase()
     {
         int curScore = 0;
@@ -109,10 +110,10 @@ public class Shop : BaseUI
         if (GameManager.Instance.score >= 700)
         {
             GameManager.Instance.AddScore(-700);
-            // ÇöÀç ÃÑ ºñÈ°¼ºÈ­, º¯°æ¿¹Á¤ÀÇ ÃÑ È°¼ºÈ­
+            // í˜„ìž¬ ì´ ë¹„í™œì„±í™”, ë³€ê²½ì˜ˆì •ì˜ ì´ í™œì„±í™”
             curGun.active = false;
             changeGun.active = true;
-            // Áßº¹ ±¸¸Å°¡ ºÒ°¡´ÉÇÏµµ·Ï ¹öÆ°À» ¸·À½
+            // ì¤‘ë³µ êµ¬ë§¤ê°€ ë¶ˆê°€ëŠ¥í•˜ë„ë¡ ë²„íŠ¼ì„ ë§‰ìŒ
             gun.onClick.RemoveListener(OnGunButtonClicked);
         }
     }
@@ -122,8 +123,12 @@ public class Shop : BaseUI
         if (GameManager.Instance.score >= 500)
         {
             GameManager.Instance.AddScore(-500);
-            throwInstance.totalThrows+=1;
-            Debug.Log(throwInstance.totalThrows);
+
+            ++shooter.hasGrenades;
+
+            //throwInstance.totalThrows+=1;
+            
+            //Debug.Log(throwInstance.totalThrows);
         }
     }
 

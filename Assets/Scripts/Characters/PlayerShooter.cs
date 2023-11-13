@@ -14,19 +14,19 @@ public class PlayerShooter : MonoBehaviour
     [SerializeField] WeaponHolder weaponHolder;
     [SerializeField] public LayerMask excludeTarget;
 
-    public Gun gun; // »ç¿ëÇÒ ÃÑ
-    private PlayerInput playerInput;    // ÀÔ·Â
-    private Camera playerCamera;        // ÇÃ·¹ÀÌ¾î Ä«¸Ş¶ó
+    public Gun gun; // ì‚¬ìš©í•  ì´
+    private PlayerInput playerInput;    // ì…ë ¥
+    private Camera playerCamera;        // í”Œë ˆì´ì–´ ì¹´ë©”ë¼
     private Animator anim;
     private bool isReloading;
 
     // public GameObject[] grenades;
-    public int hasGrenades;     // ¼ö·ùÅº °³¼ö
-    public GameObject grenadeObj;   // ¼ö·ùÅº
+    public int hasGrenades;     // ìˆ˜ë¥˜íƒ„ ê°œìˆ˜
+    public GameObject grenadeObj;   // ìˆ˜ë¥˜íƒ„
     // public Camera followCam;
 
 
-    // ¸¶Áö¸· ¹ß»ç ½Ã°£
+    // ë§ˆì§€ë§‰ ë°œì‚¬ ì‹œê°„
     private float lastFireInputTime;
 
     private void Awake()
@@ -40,15 +40,15 @@ public class PlayerShooter : MonoBehaviour
 
     private void Start()
     {
-        playerCamera = Camera.main; // ¸ŞÀÎÄ«¸Ş¶ó °¡Á®¿È
+        playerCamera = Camera.main; // ë©”ì¸ì¹´ë©”ë¼ ê°€ì ¸ì˜´
         playerInput = GetComponent<PlayerInput>();
     }
 
     private void OnEnable()
     {
-        // gun ¿ÀºêÁ§Æ® È°¼ºÈ­
+        // gun ì˜¤ë¸Œì íŠ¸ í™œì„±í™”
         gun.gameObject.SetActive(true);
-        // gunÀÇ SetupÇÔ¼ö ½ÇÇà
+        // gunì˜ Setupí•¨ìˆ˜ ì‹¤í–‰
         gun.SetUp(this);
     }
 
@@ -84,7 +84,7 @@ public class PlayerShooter : MonoBehaviour
     {
         if (gun == null || UIManager.Instance == null) return;
 
-        // Åº¾à UI °»½Å
+        // íƒ„ì•½ UI ê°±ì‹ 
         UIManager.Instance.UpdateAmmoText(gun.magAmmo, gun.ammoRemain);
     }
 
@@ -126,26 +126,19 @@ public class PlayerShooter : MonoBehaviour
         if (hasGrenades == 0)
             return;
 
-        if(!isReloading)
+        if (!isReloading)
         {
-            // ¸ŞÀÎ Ä«¸Ş¶ó·ÎºÎÅÍ ½ºÅ©¸°ÀÇ Á¡
+            // ë©”ì¸ ì¹´ë©”ë¼ë¡œë¶€í„° ìŠ¤í¬ë¦°ì˜ ì 
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             //  Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
             Debug.DrawLine(ray.origin, Camera.main.transform.forward * 50000000, Color.green, 10f);
 
-            RaycastHit rayHit;  // Ãæµ¹¿¡ ´ëÇÑ Á¤º¸¸¦ rayHit¿¡ ÀúÀåÇÔ
-            if (Physics.Raycast(ray, out rayHit, 100))
-            {
-                Vector3 nextVec = rayHit.point = transform.position;
-                nextVec.y = 10f; // °¡ÇÏ´Â Èû
+            GameObject instantGrenade = Instantiate(grenadeObj, transform.position, transform.rotation);
+            Rigidbody rigidGrenade = instantGrenade.GetComponent<Rigidbody>();
+            rigidGrenade.AddForce(Camera.main.transform.forward * 500, ForceMode.Force);
+            rigidGrenade.AddTorque(Vector3.forward * 1, ForceMode.Impulse);   // AddTorqueëŠ” ì¶•ì„ ê¸°ì¤€ìœ¼ë¡œ í˜ì„ ê°€í•œë‹¤
 
-                GameObject instantGrenade = Instantiate(grenadeObj, transform.position, transform.rotation);
-                Rigidbody rigidGrenade = instantGrenade.GetComponent<Rigidbody>();
-                rigidGrenade.AddForce(nextVec, ForceMode.Force);
-                rigidGrenade.AddTorque(Vector3.forward * 1, ForceMode.Impulse);   // AddTorque´Â ÃàÀ» ±âÁØÀ¸·Î ÈûÀ» °¡ÇÑ´Ù
-
-                hasGrenades--;
-            }
+            hasGrenades--;
             anim.SetTrigger("Grenade");
         }
     }
